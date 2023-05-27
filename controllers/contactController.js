@@ -38,8 +38,8 @@ const getContact = asyncHandler(async (req, res) => {
   res.status(201).json({ contact });
 });
 
-//@desc Update new contacts
-//@route GET /api/contacts
+//@desc Update contacts
+//@route PUT /api/contacts/:id
 //@access private
 const updateContact = asyncHandler(async (req, res) => {
   const contact = await Contact.findById(req.params.id);
@@ -47,23 +47,22 @@ const updateContact = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("Contact not found");
   }
-
   if (contact.user_id.toString() !== req.user.id) {
     res.status(403);
-    throw new Error("User don't have permission to update other contacts");
+    throw new Error("User doesn't have permission to update this contact");
   }
 
-  const updateContact = await Contact.findByIdAndUpdate(
+  const updatedContact = await Contact.findByIdAndUpdate(
     req.params.id,
     req.body,
     { new: true }
   );
 
-  res.status(200).json({ updateContact });
+  res.status(200).json(updatedContact);
 });
 
 //@desc Delete contacts
-//@route Delete /api/contacts/:id
+//@route DELETE /api/contacts/:id
 //@access private
 const deleteContact = asyncHandler(async (req, res) => {
   const contact = await Contact.findById(req.params.id);
@@ -73,10 +72,11 @@ const deleteContact = asyncHandler(async (req, res) => {
   }
   if (contact.user_id.toString() !== req.user.id) {
     res.status(403);
-    throw new Error("User don't have permission to update other contacts");
+    throw new Error("User doesn't have permission to delete this contact");
   }
-  await Contact.findByIdAndDelete({ _id: req.params.id });
-  res.status(200).json(contact);
+
+  await Contact.findByIdAndDelete(req.params.id);
+  res.status(200).json({ message: "Contact deleted successfully" });
 });
 
 module.exports = {
